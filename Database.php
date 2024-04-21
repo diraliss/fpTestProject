@@ -32,6 +32,7 @@ class Database implements DatabaseInterface
      */
     public function buildQuery(string $query, array $args = []): string
     {
+        $args = $this->prepareParameters($args);
         $builder = new QueryBuilder($query, $args);
         if ($this->skipParam) {
             $builder->setSkippedParamValue($this->skipParam);
@@ -45,5 +46,22 @@ class Database implements DatabaseInterface
             $this->skipParam = uniqid('skip');
         }
         return $this->skipParam;
+    }
+
+    private function prepareParameters(array $parameters): array
+    {
+        $result = [];
+        foreach ($parameters as $key => $parameter) {
+            if (is_array($parameter)) {
+                $result[] = $this->prepareParameters($parameter);
+            } else {
+                if (is_string($parameter)) {
+                    $parameter = mysqli_escape_string($this->mysqli, $parameter);
+                }
+                $result[$key] = $parameter;
+            }
+        }
+
+        return $result;
     }
 }

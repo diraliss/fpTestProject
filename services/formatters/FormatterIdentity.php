@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FpDbTest\services\formatters;
 
 use FpDbTest\exceptions\BadParamTypeException;
+use FpDbTest\exceptions\UnexpectedSymbolInFieldNameException;
 
 class FormatterIdentity implements FormatterInterface
 {
@@ -15,6 +16,7 @@ class FormatterIdentity implements FormatterInterface
      */
     public function format($value): string
     {
+        $this->validate($value);
         if (is_string($value)) {
             return "`$value`";
         } elseif (is_array($value)) {
@@ -34,13 +36,19 @@ class FormatterIdentity implements FormatterInterface
     public function validate($value): void
     {
         if (!is_array($value) && !is_string($value)) {
-            throw new BadParamTypeException();
+            throw new BadParamTypeException('Значение параметра должно быть строкой или массивом строк');
         }
         if (is_array($value)) {
             foreach ($value as $item) {
                 if (!is_string($item)) {
-                    throw new BadParamTypeException();
+                    throw new BadParamTypeException('Элемент массива должен быть строкой');
+                } elseif (str_contains($item, '`')) {
+                    throw new UnexpectedSymbolInFieldNameException();
                 }
+            }
+        } else {
+            if (str_contains($value, '`')) {
+                throw new UnexpectedSymbolInFieldNameException();
             }
         }
     }

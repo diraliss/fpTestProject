@@ -37,7 +37,7 @@ class FormatterInteger implements FormatterInterface
     public function validate($value): void
     {
         if (!is_null($value) && !is_numeric($value) && !is_bool($value)) {
-            throw new BadParamTypeException();
+            throw new BadParamTypeException('Значение параметра должно быть числом, строкой с числом или null');
         }
     }
 }
